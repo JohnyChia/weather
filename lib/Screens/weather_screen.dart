@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/weather_data.dart';
 import '../Location/LocationService.dart';
 import '../API/ApiService.dart';
 
@@ -15,8 +16,10 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
   bool _isLoading = true;
   String? _errorMessage;
-  Map<String, dynamic>? _weatherData;
+  WeatherData? _weatherData;
   String? _city;
+
+  List<Color> _gradientColors = [Colors.blue.shade800, Colors.blue.shade500];
 
   @override
   void initState() {
@@ -39,6 +42,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
         _city = cityName;
         _weatherData = weatherData;
         _isLoading = false;
+        _gradientColors = _getGradientColors(weatherData.weatherMain);
       });
 
     } catch (e) {
@@ -49,16 +53,53 @@ class _WeatherScreenState extends State<WeatherScreen> {
     }
   }
 
+  List<Color> _getGradientColors(String? weatherMain) {
+    switch (weatherMain) {
+      case 'Rain':
+      case 'Drizzle':
+      case 'Thunderstorm':
+        return [const Color(0xff2c3e50), const Color(0xff4b6584)];
+      case 'Clouds':
+        return [Colors.blueGrey.shade700, Colors.blueGrey.shade500];
+      case 'Clear':
+        return [Colors.blue.shade800, Colors.blue.shade500];
+      case 'Snow':
+         return [Colors.blueGrey.shade300, Colors.blueGrey.shade600];
+      default:
+        return [Colors.blue.shade800, Colors.blue.shade500];
+    }
+  }
+
+  IconData _getWeatherIcon(String? weatherMain) {
+    switch (weatherMain) {
+      case 'Clouds':
+        return Icons.wb_cloudy;
+      case 'Rain':
+      case 'Drizzle':
+        return Icons.umbrella;
+      case 'Thunderstorm':
+        return Icons.flash_on;
+      case 'Snow':
+        return Icons.ac_unit;
+      case 'Clear':
+        return Icons.wb_sunny;
+      default:
+        return Icons.blur_on;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      body: AnimatedContainer(
+        duration: const Duration(seconds: 1),
+        curve: Curves.easeInOut,
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.blue.shade800, Colors.blue.shade500],
+            colors: _gradientColors,
           ),
         ),
         child: SafeArea(
@@ -106,18 +147,24 @@ class _WeatherScreenState extends State<WeatherScreen> {
   }
 
   Widget _buildWeatherInfo() {
-    final cityName = _city ?? '';
-    final temp = (_weatherData!['temperature']) ?? '';
-    final bodyTemp = (_weatherData!['bodyTemperature']) ?? '';
-    final windSpeed = (_weatherData!['WindSpeed']) ?? '';
-    final humidity = (_weatherData!['humidity'] as num?)?.round() ?? '';
-    final uv = (_weatherData!['uvIndex']) ?? '';
-    final aqi = (_weatherData!['aqi'] as num?)?.round() ?? '';
+    final cityName = _city ?? '--';
+    final temp = _weatherData!.temperature.round();
+    final bodyTemp = _weatherData!.bodyTemperature.round();
+    final windSpeed = _weatherData!.windSpeed.round();
+    final humidity = _weatherData!.humidity;
+    final uv = _weatherData!.uvIndex.round();
+    final aqi = _weatherData!.aqi;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(cityName, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white)),
+        const SizedBox(height: 20),
+        Icon(
+          _getWeatherIcon(_weatherData!.weatherMain),
+          color: Colors.white,
+          size: 80,
+        ),
         const SizedBox(height: 10),
         Text('$temp°', style: const TextStyle(fontSize: 96, fontWeight: FontWeight.w300, color: Colors.white)),
         const SizedBox(height: 30),
@@ -143,7 +190,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildInfoColumn(Icons.lightbulb_outline, 'UV Rays', '$uv'),
+                      _buildInfoColumn(Icons.lightbulb_outline, 'UV Index', '$uv'),
                       _buildInfoColumn(Icons.masks, 'AQI', '$aqi'),
                     ],
                   ),
@@ -163,7 +210,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
         const SizedBox(height: 8),
         Text(title, style: const TextStyle(color: Colors.white70, fontSize: 14)),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(value.toString(), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
       ],
     );
   }
