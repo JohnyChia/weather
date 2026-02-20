@@ -19,8 +19,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
   WeatherData? _weatherData;
   String? _city;
 
-  List<Color> _gradientColors = [Colors.blue.shade800, Colors.blue.shade500];
-
   @override
   void initState() {
     super.initState();
@@ -42,7 +40,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
         _city = cityName;
         _weatherData = weatherData;
         _isLoading = false;
-        _gradientColors = _getGradientColors(weatherData.weatherMain);
       });
 
     } catch (e) {
@@ -53,20 +50,21 @@ class _WeatherScreenState extends State<WeatherScreen> {
     }
   }
 
-  List<Color> _getGradientColors(String? weatherMain) {
+  String _getBackgroundImage(String? weatherMain) {
     switch (weatherMain) {
       case 'Rain':
       case 'Drizzle':
+        return 'assets/images/rain.jpg';
       case 'Thunderstorm':
-        return [const Color(0xff2c3e50), const Color(0xff4b6584)];
+        return 'assets/images/Thunderstorm.jpg';
       case 'Clouds':
-        return [Colors.blueGrey.shade700, Colors.blueGrey.shade500];
-      case 'Clear':
-        return [Colors.blue.shade800, Colors.blue.shade500];
+        return 'assets/images/clouds.jpg';
+      case 'Sunny':
+        return 'assets/images/sunny.jpg';
       case 'Snow':
-         return [Colors.blueGrey.shade300, Colors.blueGrey.shade600];
+        return 'assets/images/snow.jpeg';
       default:
-        return [Colors.blue.shade800, Colors.blue.shade500];
+        return 'assets/images/sunny.jpg';
     }
   }
 
@@ -78,9 +76,9 @@ class _WeatherScreenState extends State<WeatherScreen> {
       case 'Drizzle':
         return Icons.umbrella;
       case 'Thunderstorm':
-        return Icons.flash_on;
+        return Icons.storm;
       case 'Snow':
-        return Icons.ac_unit;
+        return Icons.snowing;
       case 'Clear':
         return Icons.wb_sunny;
       default:
@@ -91,22 +89,29 @@ class _WeatherScreenState extends State<WeatherScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedContainer(
-        duration: const Duration(seconds: 1),
-        curve: Curves.easeInOut,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _gradientColors,
+      body: Stack(
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            child: Image.asset(
+              _isLoading || _weatherData == null
+                  ? 'assets/images/sunny.jpg'
+                  : _getBackgroundImage(_weatherData!.weatherMain),
+              key: ValueKey(_weatherData?.weatherMain),
+              fit: BoxFit.cover,
+              height: double.infinity,
+              width: double.infinity,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: _buildContent(),
+          Container(
+            color: Colors.black.withOpacity(0.35),
           ),
-        ),
+          SafeArea(
+            child: Center(
+              child: _buildContent(),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _fetchWeatherData,
@@ -147,7 +152,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
   }
 
   Widget _buildWeatherInfo() {
-    final cityName = _city ?? '--';
+    final cityName = _city ?? '';
     final temp = _weatherData!.temperature.round();
     final bodyTemp = _weatherData!.bodyTemperature.round();
     final windSpeed = _weatherData!.windSpeed.round();

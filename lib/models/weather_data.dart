@@ -5,7 +5,7 @@ class WeatherData {
   final int humidity;
   final int aqi;
   final double uvIndex;
-  final String weatherMain; // e.g., "Clouds", "Rain", "Clear"
+  final String weatherMain;
 
   WeatherData({
     required this.temperature,
@@ -17,8 +17,6 @@ class WeatherData {
     required this.weatherMain,
   });
 
-  // 一个工厂构造函数，用于从JSON Map创建一个WeatherData对象
-  // 这将所有解析逻辑都集中在了这一个地方
   factory WeatherData.fromJson(Map<String, dynamic> json) {
     return WeatherData(
       temperature: (json['temperature'] as num?)?.toDouble() ?? 0.0,
@@ -27,8 +25,7 @@ class WeatherData {
       humidity: (json['humidity'] as num?)?.round() ?? 0,
       aqi: (json['aqi'] as num?)?.round() ?? 0,
       uvIndex: (json['uvIndex'] as num?)?.toDouble() ?? 0.0,
-      // 我们需要这个字段来决定显示哪种天气动画
-      weatherMain: json['weatherMain'] as String? ?? 'Clear', // 默认设为晴天
+      weatherMain: json['weatherMain'] as String? ?? 'Clear',
     );
   }
 }
