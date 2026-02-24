@@ -1,3 +1,4 @@
+
 class WeatherData {
   final DateTime time;
   final double temperature;

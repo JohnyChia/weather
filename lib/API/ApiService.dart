@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/weather_data.dart';
+import '../models/hourly_data.dart';
 
 class ApiService {
   static const String _URL = 'https://weather-api-nf24.onrender.com/api';
@@ -22,6 +23,23 @@ class ApiService {
     }catch(e){
       throw Exception('An error occurred: ${e.toString()}');
     }
+  }
+
+  Future<List<HourlyData>> fetchHourlyForecast(double lat, double lon) async {
+    final String url = '$_URL/weather/hourly/$lat/$lon';
+
+    try{
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+
+      if(response.statusCode == 200){
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((item) => HourlyData.fromJson(item)).toList();
+      }else{
+        throw Exception('Failed to fetch hourly weather. Server responded with ${response.statusCode}');
+      }
+    }catch(e){
+      throw Exception('An error occurred: ${e.toString()}');
+      }
   }
 
 }
