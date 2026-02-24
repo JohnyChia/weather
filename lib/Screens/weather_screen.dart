@@ -155,6 +155,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
   }
 
   Widget _buildWeatherInfo() {
+    final Time = _weatherData?.time;
     final cityName = _city ?? '';
     final temp = _weatherData!.temperature.round();
     final bodyTemp = _weatherData!.bodyTemperature.round();
@@ -170,6 +171,17 @@ class _WeatherScreenState extends State<WeatherScreen> {
             cityName,
             style: const TextStyle(
                 fontSize: 32,
+                fontWeight:
+                FontWeight.bold,
+                color: Colors.white
+            ),
+        ),
+        const SizedBox(height: 20),
+
+        Text(
+            '${Time?.hour}:${Time?.minute}',
+            style: const TextStyle(
+                fontSize: 24,
                 fontWeight:
                 FontWeight.bold,
                 color: Colors.white
@@ -217,6 +229,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
+
+
 
                     ],
                   ),

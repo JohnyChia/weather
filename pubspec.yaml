@@ -14,6 +14,7 @@ dependencies:
   http: ^1.1.0
   geolocator: ^12.0.0
   geocoding: ^3.0.0
+  weather_manager: ^1.0.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

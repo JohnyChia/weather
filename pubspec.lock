@@ -349,6 +349,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "15.0.2"
+  weather_manager:
+    dependency: "direct main"
+    description:
+      name: weather_manager
+      sha256: "290b9e26f2dc8e505bfe1cc0bade67d3c3f7d434fce9ca7e6663f152ad77ec7f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   web:
     dependency: transitive
     description:
