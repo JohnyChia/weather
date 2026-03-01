@@ -12,6 +12,9 @@ class WeatherData {
   final DateTime moonrise;
   final DateTime moonset;
   final String moonPhase;
+  final DateTime noon;
+  final DateTime peakStart;
+  final DateTime peakEnd;
 
 
   WeatherData({
@@ -28,11 +31,14 @@ class WeatherData {
     required this.moonrise,
     required this.moonset,
     required this.moonPhase,
+    required this.noon,
+    required this.peakStart,
+    required this.peakEnd,
   });
 
   factory WeatherData.fromJson(Map<String, dynamic> json) {
     return WeatherData(
-      time: DateTime.fromMicrosecondsSinceEpoch((json['dt'] as int? ?? 0) * 1000),
+      time: DateTime.fromMillisecondsSinceEpoch((json['dt'] as int? ?? 0) * 1000),
       temperature: (json['temperature'] as num?)?.toDouble() ?? 0.0,
       bodyTemperature: (json['bodyTemperature'] as num?)?.toDouble() ?? 0.0,
       windSpeed: (json['windSpeed'] as num?)?.toDouble() ?? 0.0,
@@ -45,6 +51,9 @@ class WeatherData {
       moonrise: DateTime.fromMillisecondsSinceEpoch((json['moonrise'] ?? 0) * 1000),
       moonset: DateTime.fromMillisecondsSinceEpoch((json['moonset'] ?? 0) * 1000),
       moonPhase: json['moonPhase'] as String? ?? '',
+      noon: DateTime.fromMillisecondsSinceEpoch((json['noon'] ?? 0) * 1000),
+      peakStart: DateTime.fromMillisecondsSinceEpoch((json['peakStart'] ?? 0) * 1000),
+      peakEnd: DateTime.fromMillisecondsSinceEpoch((json['peakEnd'] ?? 0) * 1000),
     );
   }
 

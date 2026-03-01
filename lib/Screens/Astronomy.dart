@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'Solar.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 enum AstronomyView { sun, moon }
 
 class AstronomyScreen extends StatefulWidget {
   final DateTime? sunrise;
   final DateTime? sunset;
+  final DateTime? noon;
   final DateTime? moonrise;
   final DateTime? moonset;
   final String? moonPhase;
@@ -15,6 +18,7 @@ class AstronomyScreen extends StatefulWidget {
     super.key,
     this.sunrise,
     this.sunset,
+    this.noon,
     this.moonrise,
     this.moonset,
     this.moonPhase,
@@ -35,11 +39,17 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Astronomy'),
-        backgroundColor: isSunSelected ? Colors.white : const Color(0xFF0C1428),
-        foregroundColor: isSunSelected ? Colors.black87 : Colors.white,
+        backgroundColor: isSunSelected
+            ? Colors.white
+            : const Color(0xFF0C1428),
+        foregroundColor: isSunSelected
+            ? Colors.black87
+            : Colors.white,
         elevation: 0,
       ),
-      backgroundColor: isSunSelected ? Colors.white : const Color(0xFF0C1428),
+      backgroundColor: isSunSelected
+          ? Colors.white
+          : const Color(0xFF0C1428),
       body: Column(
         children: [
           _buildSelector(),
@@ -60,7 +70,9 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: isSunSelected ? Colors.grey.shade200 : Colors.black.withOpacity(0.5),
+        color: isSunSelected
+            ? Colors.grey.shade200
+            : Colors.black.withOpacity(0.5),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -87,9 +99,13 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           margin: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: isSelected ? (isSunView ? Colors.white : Colors.blueGrey.shade700) : Colors.transparent,
+            color: isSelected
+                ? (isSunView ? Colors.white : Colors.blueGrey.shade700)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            boxShadow: isSelected && isSunView ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, spreadRadius: 1)] : [],
+            boxShadow: isSelected && isSunView
+                ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, spreadRadius: 1)]
+                : [],
           ),
           child: Center(
             child: Text(
@@ -116,7 +132,33 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
 
   Widget _buildSunView() {
     String daylightDuration = '-- hours -- minutes';
-    String peakSunRange = '--:-- - --:--';
+    String uvLevel = '';
+    String solarRecommendation = 'No data available';
+
+    if (widget.uvIndex != null) {
+      final uv = widget.uvIndex!;
+
+      if (uv <= 2) {
+        uvLevel = 'Low';
+        solarRecommendation = 'Not ideal for solar energy';
+      } else if (uv <= 5) {
+        uvLevel = 'Moderate';
+        solarRecommendation = 'Moderate solar performance';
+      } else if (uv <= 7) {
+        uvLevel = 'High';
+        solarRecommendation = 'Good time for solar energy';
+      } else if (uv <= 10) {
+        uvLevel = 'Very High';
+        solarRecommendation = 'Excellent solar energy potential';
+      } else {
+        uvLevel = 'Extreme';
+        solarRecommendation = 'Maximum solar intensity';
+      }
+    }
+
+    DateTime? peakStart;
+    DateTime? peakEnd;
+    DateTime? noon;
 
     if (widget.sunrise != null && widget.sunset != null) {
       final duration = widget.sunset!.difference(widget.sunrise!);
@@ -124,11 +166,9 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
       final minutes = duration.inMinutes.remainder(60);
       daylightDuration = '$hours hours $minutes minutes';
 
-      // Calculate the peak sun hours for solar energy & UV index
-      final solarNoon = widget.sunrise!.add(duration ~/ 2);
-      final peakStart = solarNoon.subtract(const Duration(hours: 2));
-      final peakEnd = solarNoon.add(const Duration(hours: 2));
-      peakSunRange = '${DateFormat.jm().format(peakStart)} - ${DateFormat.jm().format(peakEnd)}';
+      noon = widget.sunrise!.add(Duration(seconds: duration.inSeconds ~/ 2));
+      peakStart = noon.subtract(const Duration(hours: 2));
+      peakEnd = noon.add(const Duration(hours: 2));
     }
 
     return Column(
@@ -137,23 +177,172 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
           title: 'Sunrise',
           time: widget.sunrise,
           icon: Icons.wb_sunny_outlined,
-          description: 'Dawn starts approximately 30 minutes before',
-          gradientColors: [Colors.orange.shade100, Colors.yellow.shade200],
+          gradientColors: [
+            Colors.orange.shade100,
+            Colors.yellow.shade200
+          ],
         ),
         const SizedBox(height: 12),
         _buildSunInfoCard(
           title: 'Sunset',
           time: widget.sunset,
           icon: Icons.nightlight_outlined,
-          description: 'Dusk continues approximately 30 minutes after',
-          gradientColors: [Colors.purple.shade100, Colors.pink.shade100],
+          gradientColors: [
+            Colors.purple.shade100,
+            Colors.pink.shade100
+          ],
         ),
         const SizedBox(height: 12),
-        _buildDaylightCard('DAYLIGHT DURATION', daylightDuration, Icons.hourglass_bottom),
+        _buildDaylightCard(
+            'DAYLIGHT DURATION',
+            daylightDuration,
+            Icons.hourglass_bottom
+        ),
         const SizedBox(height: 12),
 
-        _buildDaylightCard('PEAK SOLAR ENERGY', peakSunRange, Icons.solar_power_outlined),
-        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E2A47),
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Peak Sun Range',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              SizedBox(
+                height: 180,
+                child: LineChart(
+                  LineChartData(
+                    gridData: FlGridData(show: false),
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 32,
+                          getTitlesWidget: (value, meta) {
+                            if ((value - 0.1).abs() < 0.01) {
+                              return Text(
+                                DateFormat.jm().format(widget.sunrise!),
+                                style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12
+                                ),
+                              );
+                            }
+                            if ((value - 0.5).abs() < 0.01) {
+                              return Text(
+                                noon != null
+                                    ? DateFormat.jm().format(noon)
+                                    : '--:--',
+                                style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12
+                                ),
+                              );
+                            }
+                            if ((value - 0.9).abs() < 0.01) {
+                              return Text(
+                                DateFormat.jm().format(widget.sunset!),
+                                style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12
+                                ),
+                              );
+                            }
+                            return const Text('');
+                          },
+                        ),
+                      ),
+                    ),
+                    minX: 0,
+                    maxX: 1,
+                    minY: 0,
+                    maxY: 100,
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: [
+                          FlSpot(0.1, 0),
+                          FlSpot(0.5, 100),
+                          FlSpot(0.9, 0),
+                        ],
+                        isCurved: true,
+                        barWidth: 3,
+                        color: Colors.orange,
+                        dotData: FlDotData(show: true),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SolarScreen(
+                peakStart: peakStart,
+                peakEnd: peakEnd,
+              )),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E2A47),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                  Text(
+                  'UV INDEX: ${widget.uvIndex?.toStringAsFixed(1) ?? ''} ($uvLevel)',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  Text(
+                    'Solar Recommendation: $solarRecommendation',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+
+                Text(
+                  'More Information',
+                  style: TextStyle(
+                    color: Colors.grey.shade400,
+                    fontSize: 14,
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -168,10 +357,22 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Current Phase', style: TextStyle(color: Colors.white70)),
+          const Text(
+              'Current Phase',
+              style: TextStyle(
+                  color: Colors.white70
+              )
+          ),
           const SizedBox(height: 4),
 
-          Text(widget.moonPhase ?? 'Waxing Crescent', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+          Text(
+              widget.moonPhase ?? 'Waxing Crescent',
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold
+              )
+          ),
           const Row(children: [
             Icon(
                 Icons.brightness_6_outlined,
@@ -179,14 +380,30 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
             ),
             SizedBox(width: 4),
           ]),
-          const Divider(color: Colors.white24, height: 30),
-          _buildMoonTimeRow('Moonrise', widget.moonrise),
+          const Divider(
+              color: Colors.white24,
+              height: 30
+          ),
+          _buildMoonTimeRow(
+              'Moonrise',
+              widget.moonrise
+          ),
           const SizedBox(height: 10),
 
-          _buildMoonTimeRow('Moonset', widget.moonset),
-          const Divider(color: Colors.white24, height: 30),
+          _buildMoonTimeRow(
+              'Moonset',
+              widget.moonset
+          ),
+          const Divider(
+              color: Colors.white24,
+              height: 30
+          ),
           Center(
-            child: Icon(Icons.nightlight_round, size: 80, color: Colors.yellow.shade100),
+            child: Icon(
+                Icons.nightlight_round,
+                size: 80,
+                color: Colors.yellow.shade100
+            ),
           ),
         ],
       ),
@@ -197,42 +414,84 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
     required String title,
     required DateTime? time,
     required IconData icon,
-    required String description,
     required List<Color> gradientColors,
   }) {
     final formattedTime = time != null ? DateFormat('h:mm a').format(time.toLocal()) : '--:--';
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: gradientColors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight
+        ),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Icon(icon, size: 20, color: Colors.black54), const SizedBox(width: 8), Text(title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54))]),
-          const SizedBox(height: 8),
-          Text(formattedTime, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w300, color: Colors.black87)),
-          const SizedBox(height: 8),
-          // FIX: Added the missing description text
-          Text(description, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+          Row(children:
+          [Icon(
+              icon,
+              size: 20,
+              color: Colors.black54
+          ),
+            const SizedBox(width: 8),
+            Text(
+                title.toUpperCase(),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black54
+                )
+            )
+          ]),
+          Text(
+              formattedTime,
+              style: const TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.black87
+              )
+          ),
         ],
       ),
     );
   }
 
-  // This helper is now more reusable for both Daylight and Solar cards
   Widget _buildDaylightCard(String title, String value, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.grey.shade300)),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.grey.shade300
+          )
+      ),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.black54),
+          Icon(
+              icon,
+              size: 20,
+              color: Colors.black54
+          ),
           const SizedBox(width: 8),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
-          const Spacer(), // This pushes the value to the far right
-          Text(value, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+
+          Text(
+              title,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54
+              )
+          ),
+          const Spacer(),
+
+          Text(
+              value,
+              style: const TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold
+              )
+          ),
         ],
       ),
     );
@@ -243,8 +502,19 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: const TextStyle(color: Colors.white70)),
-        Text(formattedTime, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(
+            title,
+            style: const TextStyle(
+                color: Colors.white70
+            )
+        ),
+        Text(
+            formattedTime,
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold, fontSize: 16
+            )
+        ),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Screens/Astronomy.dart';
+import '../Screens/Chart.dart';
 import 'package:weather/models/hourly_data.dart';
 import '../models/weather_data.dart';
 import '../Location/LocationService.dart';
@@ -123,6 +124,17 @@ class _WeatherScreenState extends State<WeatherScreen> {
               title: const Text('Chart', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
+
+                if (_weatherData != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChartScreen(
+                       hourlyData: _hourlyForecast!
+                      ),
+                    ),
+                  );
+                }
               },
             ),
             ListTile(
