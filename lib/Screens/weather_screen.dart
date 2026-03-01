@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../Screens/Astronomy.dart';
 import 'package:weather/models/hourly_data.dart';
 import '../models/weather_data.dart';
 import '../Location/LocationService.dart';
@@ -158,9 +158,24 @@ class _WeatherScreenState extends State<WeatherScreen> {
               title: const Text('Astronomy', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
+
+                if (_weatherData != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AstronomyScreen(
+                        sunrise: _weatherData!.sunrise,
+                        sunset: _weatherData!.sunset,
+                        moonrise: _weatherData!.moonrise,
+                        moonset: _weatherData!.moonset,
+                        moonPhase: _weatherData!.moonPhase,
+                        uvIndex: _weatherData!.uvIndex,
+                      ),
+                    ),
+                  );
+                }
               },
             ),
-
           ],
         ),
 
