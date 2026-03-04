@@ -48,7 +48,6 @@ class _ChartScreenState extends State<ChartScreen> {
         children: [
           _buildSelectorOption(ChartView.dailyForecast, 'Daily Weather Forecast'),
           _buildSelectorOption(ChartView.multidaysForecast, 'Multi 5-days Forecast'),
-          _buildSelectorOption(ChartView.hourlyForecast, 'Multi-Hourly Forecast'),
           _buildSelectorOption(ChartView.hourlyIndexForecast, 'Hourly UV Index Forecast'),
 
         ],
@@ -75,7 +74,12 @@ class _ChartScreenState extends State<ChartScreen> {
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             boxShadow: isSelected && isSunView
-                ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, spreadRadius: 1)]
+                ? [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 5,
+                      spreadRadius: 1
+                  )]
                 : [],
           ),
           child: Center(
@@ -93,18 +97,35 @@ class _ChartScreenState extends State<ChartScreen> {
   }
 
   Widget _buildChart() {
-    final xLabels = _selectedView == ChartView.hourlyForecast
-        ? widget.hourlyData.map((e) => e.weatherTime).toList()
-        : widget.hourlyData.map((e) => e.weatherDate).toList();
+    List<String> xLabels = [];
+    List<double> temperature = [];
+    List<double> humidity = [];
 
-    final tempValues = widget.hourlyData.map((e) => e.temp).toList();
-    final humidityValues = widget.hourlyData.map((e) => e.humidity.toDouble()).toList();
+    if (_selectedView == ChartView.dailyForecast) {
+      String today = widget.hourlyData.first.weatherDate;
+
+      for (var data in widget.hourlyData) {
+        if (data.weatherDate == today) {
+          xLabels.add(data.weatherTime);
+          temperature.add(data.temp);
+          humidity.add(data.humidity.toDouble());
+        }
+      }
+    }
+    else if (_selectedView == ChartView.multidaysForecast) {
+
+      for(var data in widget.hourlyData) {
+        xLabels.add(data.weatherDate);
+        temperature.add(data.temp);
+        humidity.add(data.humidity.toDouble());
+      }
+    }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: SizedBox(
-        width: xLabels.length * 50.0,
-        height: 300,
+        width: xLabels.length * 100,
+        height: 350,
         child: LineChart(
           LineChartData(
             minY: 0,
@@ -115,39 +136,35 @@ class _ChartScreenState extends State<ChartScreen> {
                   showTitles: true,
                   interval: 1,
                   getTitlesWidget: (value, meta) {
-                    final index = value.toInt();
-                    if (index < 0 || index >= xLabels.length) return const SizedBox();
-                    return Text(xLabels[index], style: const TextStyle(fontSize: 12));
+                    int index = value.toInt();
+                    if (index < 0 || index >= xLabels.length)
+                      return const SizedBox();
+                    return Text(
+                      xLabels[index],
+                      style: const TextStyle(fontSize: 13),
+                    );
                   },
-                ),
-              ),
-              leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  interval: 10,
-                  getTitlesWidget: (value, meta) => Text('${value.toInt()}°C', style: const TextStyle(color: Colors.red)),
-                ),
-              ),
-              rightTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  interval: 10,
-                  getTitlesWidget: (value, meta) => Text('${value.toInt()}%', style: const TextStyle(color: Colors.blue)),
                 ),
               ),
             ),
             lineBarsData: [
               LineChartBarData(
-                spots: List.generate(tempValues.length, (i) => FlSpot(i.toDouble(), tempValues[i])),
+                spots: List.generate(
+                  temperature.length,
+                      (i) => FlSpot(i.toDouble(), temperature[i]),
+                ),
                 isCurved: true,
                 color: Colors.red,
-                barWidth: 3,
+                barWidth: 4,
               ),
               LineChartBarData(
-                spots: List.generate(humidityValues.length, (i) => FlSpot(i.toDouble(), humidityValues[i])),
+                spots: List.generate(
+                  humidity.length,
+                      (i) => FlSpot(i.toDouble(), humidity[i]),
+                ),
                 isCurved: true,
                 color: Colors.blue,
-                barWidth: 3,
+                barWidth: 4,
               ),
             ],
           ),
