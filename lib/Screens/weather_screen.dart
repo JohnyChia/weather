@@ -6,6 +6,26 @@ import '../models/weather_data.dart';
 import '../Location/LocationService.dart';
 import '../API/ApiService.dart';
 
+String getWeatherIcon(String? weatherMain) {
+  final weather = weatherMain?.toLowerCase();
+
+  switch (weather) {
+    case 'Rain':
+      return 'assets/images/rainy_2d.png';
+    case 'Drizzle':
+      return 'assets/images/rainy_2d.png';
+    case 'Thunderstorm':
+      return 'assets/images/thunder_2d.png';
+    case 'Clouds':
+      return 'assets/images/sunny_2d.png';
+    case 'Snow':
+      return 'assets/images/snow_2d.png';
+    default:
+      return 'assets/images/sunny_2d.png';
+  }
+}
+
+
 class WeatherScreen extends StatefulWidget {
   const WeatherScreen({super.key});
 
@@ -21,6 +41,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
   String? _errorMessage;
   WeatherData? _weatherData;
   List<HourlyData>? _hourlyForecast;
+  List<HourlyData>? _fiveDayForecast;
   String? _city;
 
   @override
@@ -42,12 +63,14 @@ class _WeatherScreenState extends State<WeatherScreen> {
       final weather = await Future.wait([
         _apiService.fetchWeather(position.latitude, position.longitude),
         _apiService.fetchHourlyForecast(position.latitude, position.longitude),
+        _apiService.fetchFiveDayForecast(position.latitude, position.longitude),
       ]);
 
       setState(() {
         _city = cityName;
         _weatherData = weather[0] as WeatherData?;
         _hourlyForecast = weather[1] as List<HourlyData>?;
+        _fiveDayForecast = weather[2] as List<HourlyData>?;
         _isLoading = false;
       });
 
@@ -75,25 +98,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
         return 'assets/images/snow.png';
       default:
         return 'assets/images/sunny.png';
-    }
-  }
-
-  String _getWeatherIcon(String? weatherMain) {
-    final weather = weatherMain?.toLowerCase();
-
-    switch (weather) {
-      case 'Rain':
-        return 'assets/images/rainy_2d.png';
-      case 'Drizzle':
-        return 'assets/images/rainy_2d.png';
-      case 'Thunderstorm':
-        return 'assets/images/thunder_2d.png';
-      case 'Clouds':
-        return 'assets/images/sunny_2d.png';
-      case 'Snow':
-        return 'assets/images/snow_2d.png';
-      default:
-        return 'assets/images/sunny_2d.png';
     }
   }
 
@@ -130,7 +134,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ChartScreen(
-                       hourlyData: _hourlyForecast!
+                       hourlyData: _hourlyForecast!,
+                       multiDays: _fiveDayForecast!,
                       ),
                     ),
                   );
@@ -182,6 +187,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         moonset: _weatherData!.moonset,
                         moonPhase: _weatherData!.moonPhase,
                         uvIndex: _weatherData!.uvIndex,
+                        hourlyUV: _hourlyForecast,
                       ),
                     ),
                   );
@@ -367,7 +373,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
           const SizedBox(height: 8),
 
           Image.asset(
-            _getWeatherIcon(item.condition),
+            getWeatherIcon(item.condition),
             width: 50,
             height: 50,
           ),

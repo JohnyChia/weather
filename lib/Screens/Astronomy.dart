@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:weather/models/hourly_data.dart';
 import 'Solar.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -13,6 +14,7 @@ class AstronomyScreen extends StatefulWidget {
   final DateTime? moonset;
   final String? moonPhase;
   final double? uvIndex;
+  final List<HourlyData>? hourlyUV;
 
   const AstronomyScreen({
     super.key,
@@ -22,7 +24,8 @@ class AstronomyScreen extends StatefulWidget {
     this.moonrise,
     this.moonset,
     this.moonPhase,
-    this.uvIndex
+    this.uvIndex,
+    this.hourlyUV,
   });
 
   @override
@@ -300,11 +303,13 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
 
         InkWell(
           onTap: () {
+            print("hourlyUV: ${widget.hourlyUV}");
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => SolarScreen(
                 peakStart: peakStart,
                 peakEnd: peakEnd,
+                hourlyUV: widget.hourlyUV,
               )),
             );
           },

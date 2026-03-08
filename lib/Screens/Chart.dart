@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/hourly_data.dart';
+import 'weather_screen.dart';
 
 enum ChartView { dailyForecast, multidaysForecast, hourlyForecast, hourlyIndexForecast }
 
 class ChartScreen extends StatefulWidget {
   final List<HourlyData> hourlyData;
+  final List<HourlyData> multiDays;
 
   const ChartScreen({
     super.key,
     required this.hourlyData,
+    required this.multiDays,
   });
 
   @override
@@ -17,7 +20,7 @@ class ChartScreen extends StatefulWidget {
 }
 
 class _ChartScreenState extends State<ChartScreen> {
-  ChartView _selectedView = ChartView.hourlyForecast;
+  ChartView _selectedView = ChartView.dailyForecast;
 
   @override
   Widget build(BuildContext context) {
@@ -97,25 +100,22 @@ class _ChartScreenState extends State<ChartScreen> {
   }
 
   Widget _buildChart() {
+    if (_selectedView == ChartView.multidaysForecast) {
+      return _buildMultiDaysForecast();
+    }
+
+    if (_selectedView == ChartView.hourlyIndexForecast) {
+      return _buildDailyUVChart();
+    }
+
     List<String> xLabels = [];
     List<double> temperature = [];
     List<double> humidity = [];
 
-    if (_selectedView == ChartView.dailyForecast) {
-      String today = widget.hourlyData.first.weatherDate;
-
-      for (var data in widget.hourlyData) {
-        if (data.weatherDate == today) {
-          xLabels.add(data.weatherTime);
-          temperature.add(data.temp);
-          humidity.add(data.humidity.toDouble());
-        }
-      }
-    }
-    else if (_selectedView == ChartView.multidaysForecast) {
-
-      for(var data in widget.hourlyData) {
-        xLabels.add(data.weatherDate);
+    String today = widget.hourlyData.first.weatherDate;
+    for (var data in widget.hourlyData) {
+      if (data.weatherDate == today) {
+        xLabels.add(data.weatherTime);
         temperature.add(data.temp);
         humidity.add(data.humidity.toDouble());
       }
@@ -125,26 +125,46 @@ class _ChartScreenState extends State<ChartScreen> {
       scrollDirection: Axis.horizontal,
       child: SizedBox(
         width: xLabels.length * 100,
-        height: 350,
+        height: 400,
         child: LineChart(
           LineChartData(
-            minY: 0,
-            maxY: 100,
+            minY: 10,
+            maxY: 80,
             titlesData: FlTitlesData(
+              topTitles: AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
                   interval: 1,
                   getTitlesWidget: (value, meta) {
                     int index = value.toInt();
-                    if (index < 0 || index >= xLabels.length)
-                      return const SizedBox();
+                    if (index < 0 || index >= xLabels.length) return const SizedBox();
                     return Text(
                       xLabels[index],
                       style: const TextStyle(fontSize: 13),
                     );
                   },
                 ),
+              ),
+            ),
+            lineTouchData: LineTouchData(
+              enabled: true,
+              handleBuiltInTouches: true,
+              touchTooltipData: LineTouchTooltipData(
+                getTooltipItems: (touchedSpots) {
+                  return touchedSpots.map((spot) {
+                    int index = spot.spotIndex.toInt();
+                    String label = xLabels[index];
+                    double temp = temperature[index];
+                    double hum = humidity[index];
+                    return LineTooltipItem(
+                      '$label\nTemperature: $temp°C\nHumidity: $hum%',
+                      const TextStyle(color: Colors.black),
+                    );
+                  }).toList();
+                },
               ),
             ),
             lineBarsData: [
@@ -168,6 +188,147 @@ class _ChartScreenState extends State<ChartScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMultiDaysForecast() {
+    if (widget.multiDays.isEmpty) {
+      return const Center(
+        child: Text('No data', style: TextStyle(color: Colors.white)),
+      );
+    }
+
+    final first5Days = widget.multiDays.take(5).toList();
+
+    return SingleChildScrollView(
+      child: Column(
+        children: first5Days.map((day) {
+          final icon = getWeatherIcon(day.condition);
+
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Image.asset(
+                    icon,
+                    width: 50,
+                    height: 50
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(day.weatherDate,
+                        style: const TextStyle(
+                            color: Colors.white70
+                        )
+                    ),
+                    Text('${day.temp.round()}°C',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold
+                        )
+                    ),
+                    Text('Humidity: ${day.humidity}%',
+                        style: const TextStyle(
+                            color: Colors.white70
+                        )
+                    ),
+                    Text('Condition: ${day.condition}',
+                        style: const TextStyle(
+                            color: Colors.white70
+                        )
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildDailyUVChart() {
+    final today = widget.hourlyData.first.weatherDate;
+    final todayData = widget.hourlyData.where((d) => d.weatherDate == today).toList();
+
+    if (todayData.isEmpty) {
+      return const Center(child: Text('No UV data', style: TextStyle(color: Colors.white)));
+    }
+
+    final maxUV = todayData.map((d) => d.uvIndex).reduce((a, b) => a > b ? a : b);
+    final maxY = (maxUV > 0 ? (maxUV + 1) : 1).toDouble();
+
+    return SizedBox(
+      height: 300,
+      child: BarChart(
+        BarChartData(
+          maxY: maxY,
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  int index = value.toInt();
+                  if (index < 0 || index >= todayData.length)
+                    return const SizedBox();
+                  return Text(
+                    todayData[index].weatherTime,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12
+                    ),
+                  );
+                },
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                interval: 1,
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    value.toInt().toString(),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12
+                    ),
+                  );
+                },
+              ),
+            ),
+            topTitles: AxisTitles(
+                sideTitles: SideTitles(
+                    showTitles: false
+                )
+            ),
+            rightTitles: AxisTitles(
+                sideTitles: SideTitles(
+                    showTitles: false
+                )
+            ),
+          ),
+          barGroups: List.generate(todayData.length, (i) {
+            return BarChartGroupData(
+              x: i,
+              barRods: [
+                BarChartRodData(
+                  toY: todayData[i].uvIndex,
+                  color: Colors.orange,
+                  width: 12,
+                ),
+              ],
+            );
+          }),
+          borderData: FlBorderData(show: false),
         ),
       ),
     );

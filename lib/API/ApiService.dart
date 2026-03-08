@@ -42,4 +42,22 @@ class ApiService {
       }
   }
 
+  Future<List<HourlyData>> fetchFiveDayForecast(double lat, double lon) async {
+    final String url = '$_URL/weather/forecast/$lat/$lon';
+
+    try {
+      final response = await http.get(Uri.parse(url))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((item) => HourlyData.fromJson(item)).toList();
+      } else {
+        throw Exception(
+            'Failed to fetch 5-day forecast. Server responded with ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('An error occurred: ${e.toString()}');
+    }
+  }
 }
