@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/weather_data.dart';
@@ -60,4 +59,5 @@ class ApiService {
       throw Exception('An error occurred: ${e.toString()}');
     }
   }
+
 }

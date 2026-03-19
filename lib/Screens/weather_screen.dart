@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weather/Screens/weather_map.dart';
 import '../Screens/Astronomy.dart';
 import '../Screens/Chart.dart';
 import 'package:weather/models/hourly_data.dart';
@@ -114,7 +115,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
       drawer: Drawer(
         backgroundColor: Colors.deepPurple.shade900,
         child: ListView(
-          padding: EdgeInsets.symmetric(vertical: 50),
+          padding: const EdgeInsets.symmetric(vertical: 50),
           children: [
             ListTile(
               leading: const Icon(Icons.location_city, color: Colors.white),
@@ -146,7 +147,15 @@ class _WeatherScreenState extends State<WeatherScreen> {
               leading: const Icon(Icons.map, color: Colors.white),
               title: const Text('Live Weather Map', style: TextStyle(color: Colors.white)),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MapScreen(
+                      lat: _weatherData!.lat,
+                      lon: _weatherData!.lon,
+                    ),
+                  ),
+                );
               },
             ),
             ListTile(
@@ -216,7 +225,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
             width: double.infinity,
           ),
           Container(
-            color: Colors.black.withOpacity(0.35),
+            color: Colors.black.withOpacity(0.5),
           ),
           SafeArea(
             child: _buildContent(),
@@ -320,7 +329,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
           const SizedBox(height: 25),
 
           Card(
-            color: Colors.white.withOpacity(0.2),
+            color: Colors.black.withOpacity(0.5),
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             child: Padding(
@@ -357,7 +366,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
       width: 75,
       margin: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.black.withOpacity(0.5),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(

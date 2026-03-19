@@ -75,7 +75,7 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
       decoration: BoxDecoration(
         color: isSunSelected
             ? Colors.grey.shade200
-            : Colors.black.withOpacity(0.5),
+            : Colors.black,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -107,7 +107,10 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             boxShadow: isSelected && isSunView
-                ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, spreadRadius: 1)]
+                ? [const BoxShadow(
+                        color: Colors.black,
+                        blurRadius: 5, spreadRadius: 1
+                  )]
                 : [],
           ),
           child: Center(
@@ -226,15 +229,15 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
                 height: 180,
                 child: LineChart(
                   LineChartData(
-                    gridData: FlGridData(show: false),
+                    gridData: const FlGridData(show: false),
                     titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
+                      leftTitles: const AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
-                      rightTitles: AxisTitles(
+                      rightTitles: const AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
-                      topTitles: AxisTitles(
+                      topTitles: const AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
                       bottomTitles: AxisTitles(
@@ -283,14 +286,14 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
                     lineBarsData: [
                       LineChartBarData(
                         spots: [
-                          FlSpot(0.1, 0),
-                          FlSpot(0.5, 100),
-                          FlSpot(0.9, 0),
+                          const FlSpot(0.1, 0),
+                          const FlSpot(0.5, 100),
+                          const FlSpot(0.9, 0),
                         ],
                         isCurved: true,
                         barWidth: 3,
                         color: Colors.orange,
-                        dotData: FlDotData(show: true),
+                        dotData: const FlDotData(show: true),
                       ),
                     ],
                   ),
@@ -303,7 +306,6 @@ class _AstronomyScreenState extends State<AstronomyScreen> {
 
         InkWell(
           onTap: () {
-            print("hourlyUV: ${widget.hourlyUV}");
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => SolarScreen(

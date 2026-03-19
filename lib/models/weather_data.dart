@@ -15,6 +15,8 @@ class WeatherData {
   final DateTime noon;
   final DateTime peakStart;
   final DateTime peakEnd;
+  final double lat;
+  final double lon;
 
 
   WeatherData({
@@ -34,6 +36,8 @@ class WeatherData {
     required this.noon,
     required this.peakStart,
     required this.peakEnd,
+    required this.lat,
+    required this.lon,
   });
 
   factory WeatherData.fromJson(Map<String, dynamic> json) {
@@ -54,6 +58,8 @@ class WeatherData {
       noon: DateTime.fromMillisecondsSinceEpoch((json['noon'] ?? 0) * 1000),
       peakStart: DateTime.fromMillisecondsSinceEpoch((json['peakStart'] ?? 0) * 1000),
       peakEnd: DateTime.fromMillisecondsSinceEpoch((json['peakEnd'] ?? 0) * 1000),
+      lat: (json['lat'] as num?)?.toDouble() ?? 0.0,
+      lon: (json['lon'] as num?)?.toDouble() ?? 0.0,
     );
   }
 

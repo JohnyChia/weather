@@ -25,7 +25,13 @@ class _ChartScreenState extends State<ChartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chart')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Chart'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+      ),
       body: Column(
         children: [
           _buildSelector(),
@@ -37,13 +43,10 @@ class _ChartScreenState extends State<ChartScreen> {
   }
 
   Widget _buildSelector() {
-    final isSunSelected = _selectedView == ChartView.hourlyForecast;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: isSunSelected
-            ? Colors.grey.shade200
-            : Colors.black.withOpacity(0.5),
+        color: Colors.grey,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -60,7 +63,6 @@ class _ChartScreenState extends State<ChartScreen> {
 
   Widget _buildSelectorOption(ChartView view, String title) {
     final isSelected = _selectedView == view;
-    final isSunView = _selectedView == ChartView.hourlyForecast;
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -72,24 +74,14 @@ class _ChartScreenState extends State<ChartScreen> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           margin: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: isSelected
-                ? (isSunView ? Colors.white : Colors.blueGrey.shade700)
-                : Colors.transparent,
+            color: isSelected ? Colors.white : Colors.grey.shade300,
             borderRadius: BorderRadius.circular(8),
-            boxShadow: isSelected && isSunView
-                ? [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 5,
-                      spreadRadius: 1
-                  )]
-                : [],
           ),
           child: Center(
             child: Text(
               title,
               style: TextStyle(
-                color: isSunView ? Colors.black87 : Colors.white,
+                color: Colors.black,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -131,7 +123,7 @@ class _ChartScreenState extends State<ChartScreen> {
             minY: 10,
             maxY: 80,
             titlesData: FlTitlesData(
-              topTitles: AxisTitles(
+              topTitles: const AxisTitles(
                 sideTitles: SideTitles(showTitles: false),
               ),
               bottomTitles: AxisTitles(
@@ -143,12 +135,35 @@ class _ChartScreenState extends State<ChartScreen> {
                     if (index < 0 || index >= xLabels.length) return const SizedBox();
                     return Text(
                       xLabels[index],
-                      style: const TextStyle(fontSize: 13),
+                      style: const TextStyle(fontSize: 13, color: Colors.black),
+                    );
+                  },
+                ),
+              ),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    return Text(
+                      value.toInt().toString(),
+                      style: const TextStyle(color: Colors.black, fontSize: 12),
+                    );
+                  },
+                ),
+              ),
+              rightTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    return Text(
+                      value.toInt().toString(),
+                      style: const TextStyle(color: Colors.black, fontSize: 12),
                     );
                   },
                 ),
               ),
             ),
+
             lineTouchData: LineTouchData(
               enabled: true,
               handleBuiltInTouches: true,
@@ -167,6 +182,7 @@ class _ChartScreenState extends State<ChartScreen> {
                 },
               ),
             ),
+
             lineBarsData: [
               LineChartBarData(
                 spots: List.generate(
@@ -196,7 +212,7 @@ class _ChartScreenState extends State<ChartScreen> {
   Widget _buildMultiDaysForecast() {
     if (widget.multiDays.isEmpty) {
       return const Center(
-        child: Text('No data', style: TextStyle(color: Colors.white)),
+        child: Text('No data', style: TextStyle(color: Colors.black)),
       );
     }
 
@@ -211,7 +227,7 @@ class _ChartScreenState extends State<ChartScreen> {
             margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.grey,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -227,23 +243,23 @@ class _ChartScreenState extends State<ChartScreen> {
                   children: [
                     Text(day.weatherDate,
                         style: const TextStyle(
-                            color: Colors.white70
+                            color: Colors.black
                         )
                     ),
                     Text('${day.temp.round()}°C',
                         style: const TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontWeight: FontWeight.bold
                         )
                     ),
                     Text('Humidity: ${day.humidity}%',
                         style: const TextStyle(
-                            color: Colors.white70
+                            color: Colors.black
                         )
                     ),
                     Text('Condition: ${day.condition}',
                         style: const TextStyle(
-                            color: Colors.white70
+                            color: Colors.black
                         )
                     ),
                   ],
@@ -261,7 +277,7 @@ class _ChartScreenState extends State<ChartScreen> {
     final todayData = widget.hourlyData.where((d) => d.weatherDate == today).toList();
 
     if (todayData.isEmpty) {
-      return const Center(child: Text('No UV data', style: TextStyle(color: Colors.white)));
+      return const Center(child: Text('No UV data', style: TextStyle(color: Colors.black)));
     }
 
     final maxUV = todayData.map((d) => d.uvIndex).reduce((a, b) => a > b ? a : b);
@@ -278,12 +294,13 @@ class _ChartScreenState extends State<ChartScreen> {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   int index = value.toInt();
-                  if (index < 0 || index >= todayData.length)
+                  if (index < 0 || index >= todayData.length) {
                     return const SizedBox();
+                  }
                   return Text(
                     todayData[index].weatherTime,
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 12
                     ),
                   );
@@ -298,19 +315,19 @@ class _ChartScreenState extends State<ChartScreen> {
                   return Text(
                     value.toInt().toString(),
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 12
                     ),
                   );
                 },
               ),
             ),
-            topTitles: AxisTitles(
+            topTitles: const AxisTitles(
                 sideTitles: SideTitles(
                     showTitles: false
                 )
             ),
-            rightTitles: AxisTitles(
+            rightTitles: const AxisTitles(
                 sideTitles: SideTitles(
                     showTitles: false
                 )
