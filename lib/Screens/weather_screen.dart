@@ -5,6 +5,8 @@ import 'package:weather/models/hourly_data.dart';
 import '../models/weather_data.dart';
 import '../Location/LocationService.dart';
 import '../API/ApiService.dart';
+import '../Services/Notification_services.dart';
+
 
 String getWeatherIcon(String? weatherMain) {
   final weather = weatherMain?.toLowerCase();
@@ -66,13 +68,30 @@ class _WeatherScreenState extends State<WeatherScreen> {
         _apiService.fetchFiveDayForecast(position.latitude, position.longitude),
       ]);
 
+      final fetchedWeatherData = weather[0] as WeatherData?;
+      final fetchedHourly = weather[1] as List<HourlyData>?;
+      final fetchedFiveDay = weather[2] as List<HourlyData>?;
+
       setState(() {
         _city = cityName;
-        _weatherData = weather[0] as WeatherData?;
-        _hourlyForecast = weather[1] as List<HourlyData>?;
-        _fiveDayForecast = weather[2] as List<HourlyData>?;
+        _weatherData = fetchedWeatherData;
+        _hourlyForecast = fetchedHourly;
+        _fiveDayForecast = fetchedFiveDay;
         _isLoading = false;
       });
+
+      // Notifications
+      if (_weatherData != null) {
+        NotificationService().showCurrentWeatherNotification(
+          cityName: _city ?? "Your Location",
+          condition: _weatherData!.weatherMain,
+          temperature: _weatherData!.temperature,
+        );
+      }
+
+      if (_hourlyForecast != null && _hourlyForecast!.isNotEmpty) {
+        NotificationService().checkRainAndNotify(_hourlyForecast!);
+      }
 
     } catch (e) {
       setState(() {
@@ -114,7 +133,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
       drawer: Drawer(
         backgroundColor: Colors.deepPurple.shade900,
         child: ListView(
-          padding: EdgeInsets.symmetric(vertical: 50),
+          padding: const EdgeInsets.symmetric(vertical: 50),
           children: [
             ListTile(
               leading: const Icon(Icons.location_city, color: Colors.white),
@@ -140,34 +159,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
                     ),
                   );
                 }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.map, color: Colors.white),
-              title: const Text('Live Weather Map', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.history, color: Colors.white),
-              title: const Text('Weather History', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.notifications, color: Colors.white),
-              title: const Text('Notifications', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.alarm, color: Colors.white),
-              title: const Text('Severe Weather Center', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context);
               },
             ),
             ListTile(
