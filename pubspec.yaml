@@ -10,7 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   http: ^1.1.0
   geolocator: ^12.0.0
   geocoding: ^3.0.0
@@ -19,6 +18,9 @@ dependencies:
   google_maps_flutter: ^2.3.1
   location: ^8.0.1
 
+  flutter_local_notifications: ^17.2.1
+  timezone: ^0.9.4
+  weather_animation: ^1.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -52,6 +54,9 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/images/
+    - assets/animations/
+
+  # To add images to your application, add an images section, like this:
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'screens/weather_screen.dart';
+import 'Services/Notification_services.dart';
 
-void main() {
+
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize notification
+  await NotificationService().init();
+
   runApp(const MyApp());
 }
 
